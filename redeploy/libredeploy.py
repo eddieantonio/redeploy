@@ -54,9 +54,34 @@ def redeploy(*args, **kwargs):
 
     Intended to be run as a CGI script.
     """
-    print("Content-Type: text/plain")
-    print()
-    _redeploy(*args, **kwargs)
+    try:
+        _redeploy(*args, **kwargs)
+    except InvalidHTTPInvocationError:
+        uri = os.getenv('SERVER_NAME') + os.getenv('SCRIPT_NAME')
+        print("Content-Type: text/plain")
+        print("Status: 405 Method Not Allowed")
+        print()
+        print(
+            "Invalid invocation. "
+            "You must make a POST request with the secret.\n"
+            "\n"
+            "    curl -XPOST -dsecret=XXXXXX " + uri
+        )
+    except RedeployError as err:
+        print("Content-Type: text/plain")
+        print("Status: 400 Bad Request")
+        print()
+        print("Could not redeploy:", type(err).__name__)
+        print(err)
+    except subprocess.CalledProcessError as err:
+        print("Content-Type: text/plain")
+        print("Status: 500 Server Error")
+        print()
+        print(err)
+    else:
+        print("Content-Type: text/plain")
+        print("Status: 204 No Content")
+        print()
 
 
 def _redeploy(app_name, directory, script):
