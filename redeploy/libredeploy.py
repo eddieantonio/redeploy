@@ -130,7 +130,6 @@ def get_local_secret(app: Path):
     if key_stat.st_gid != my_group:
         raise InadequatePermissionsError('invalid owner for secret key')
     if stat.filemode(key_stat.st_mode) not in ('-r--------', '-rw-------'):
-        print(stat.filemode(key_stat.st_mode))
         raise InadequatePermissionsError(
             'invalid permissions for secret key.\n'
             'chmod 600 <my-key-file>'
