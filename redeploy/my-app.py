@@ -10,6 +10,8 @@ DIRECTORY = '/Users/eddieantonio/Projects/itwewina/neahtta'
 SCRIPT = 'git pull && touch itwewina.wsgi'
 
 
+################################# Exceptions #################################
+
 class RedeployError(Exception):
     """
     Base class for all exceptions in this module.
@@ -20,6 +22,7 @@ class InadequatePermissionsError(RedeployError):
     """
     Raised when the permissions to something is wrong.
     """
+
 
 class InvalidKeyError(RedeployError):
     """
@@ -41,18 +44,20 @@ def cgimain():
 
 def redeploy():
     # Enable CGI tracebacks, for debugging.
-    cgitb.enable()
+    #cgitb.enable()
 
-    here = Path(__file__).parent
-    app = Path(__file__).stem
-    secret_key_file = here / app.with_suffix('.key')
+    app = Path(__file__)
+    secret_key_file = app.with_suffix('.key')
 
     # Figure out if we should respond at all.
     if os.getenv('REQUEST_METHOD', 'GET').upper() != 'POST':
         raise InvalidHTTPInvocationError
 
     # Open the secret.
-    secret = secret_key_file.read_text()
+    try:
+        secret = secret_key_file.read_text()
+    except FileNotFoundError:
+        raise InvalidKeyError("You forgot to generate a secret key.")
 
     # Figure out if we have the right permissions.
     # Note that the secret key file should ONLY be visible to this very
