@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
+
+from libredeploy import redeploy
+
+# Before this will work, make sure to run:
+#
+#   ./generate-secret.py example
+
+redeploy(app_name=__file__,
+         # This is the directory where your app lives
+         directory='/opt/example',
+         # This is the shell script of how to do the redeploy.
+         # Normally, this is a git pull, followed by someway to tell the
+         # server to reload the app.
+         script='false')
