@@ -48,6 +48,8 @@ class InvalidHTTPInvocationError(RedeployError):
     """
 
 
+################################## Main API ##################################
+
 def redeploy(*args, **kwargs):
     """
     Redeploy the web application.
@@ -61,11 +63,10 @@ def redeploy(*args, **kwargs):
         print("Content-Type: text/plain")
         print("Status: 405 Method Not Allowed")
         print()
-        print(
-            "Invalid invocation. "
-            "You must make a POST request with the secret.\n"
-            "\n"
-            "    curl -XPOST -dsecret=XXXXXX " + uri
+        print("Invalid invocation. "
+              "You must make a POST request with the secret.\n"
+              "\n"
+              "    curl -XPOST -dsecret=XXXXXX " + uri
         )
     except RedeployError as err:
         print("Content-Type: text/plain")
@@ -79,17 +80,13 @@ def redeploy(*args, **kwargs):
         print()
         print(err)
     else:
+        # All went okay :)
         print("Content-Type: text/plain")
         print("Status: 204 No Content")
         print()
 
 
 def _redeploy(app_name, directory, script):
-    """
-    How to use:
-
-
-    """
     app = Path(app_name)
     secret_key_file = app.with_suffix('.key')
 
@@ -97,11 +94,11 @@ def _redeploy(app_name, directory, script):
     if os.getenv('REQUEST_METHOD', 'GET').upper() != 'POST':
         raise InvalidHTTPInvocationError('Request should use POST method')
 
+    # What is the secret?
     try:
         given_secret = cgi.parse()['secret'][0]
     except (KeyError, IndexError):
         raise InvalidHTTPInvocationError('Key not provided')
-
 
     # Open the secret.
     try:
@@ -156,4 +153,4 @@ def cd(path):
 
 
 if __name__ == '__main__':
-    cgimain()
+    redeploy()
