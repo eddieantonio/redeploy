@@ -88,27 +88,26 @@ def redeploy(*args, **kwargs):
 def _redeploy(app_name, directory, script):
     app = Path(app_name)
 
-    # Figure out if we should respond at all.
-    if os.getenv('REQUEST_METHOD', 'GET').upper() != 'POST':
-        raise InvalidHTTPInvocationError('Request should use POST method')
-
-    # What is the secret?
-    try:
-        given_secret = cgi.parse()['secret'][0]
-    except (KeyError, IndexError):
-        raise InvalidHTTPInvocationError('Key not provided')
-
+    # Read the secrets!
+    given_secret = get_requested_secret()
+    # Only load our secret after we've verified we could get theirs.
     local_secret = get_local_secret(app)
 
+    # Did the request provide the right secret?
     if not secrets.compare_digest(local_secret, given_secret):
         raise InvalidKeyError
 
-    # We can do it!
+    # Secret verified! Run the redeploy script!
     with cd(directory):
         subprocess.run(script, shell=True, check=True)
 
 
 def get_local_secret(app: Path):
+    """
+    Gets the secret relative to the app path. The secret should be kept in a
+    file with chmod 600 or chmod 400 mode -- only allow reads from owner and
+    NOBODY else!
+    """
     secret_key_file = app.with_suffix('.key')
     # Open the secret.
     try:
@@ -138,6 +137,19 @@ def get_local_secret(app: Path):
         )
 
     return local_secret
+
+
+def get_requested_secret():
+    # Figure out if we should respond at all.
+    if os.getenv('REQUEST_METHOD', 'GET').upper() != 'POST':
+        raise InvalidHTTPInvocationError('Request should use POST method')
+
+    # What is the secret?
+    try:
+        return cgi.parse()['secret'][0]
+    except (KeyError, IndexError):
+        raise InvalidHTTPInvocationError('Key not provided')
+
 
 @contextmanager
 def cd(path):
