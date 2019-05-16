@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
+"""
+Usage:
+
+    generate-secret.py <app-name>
+
+Generates a secret key called <app-name>.key.
+"""
+
 import sys
 import secrets
 from pathlib import Path

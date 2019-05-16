@@ -21,7 +21,6 @@ from contextlib import contextmanager
 from pathlib import Path
 
 
-
 ################################# Exceptions #################################
 
 class RedeployError(Exception):
@@ -88,7 +87,6 @@ def redeploy(*args, **kwargs):
 
 def _redeploy(app_name, directory, script):
     app = Path(app_name)
-    secret_key_file = app.with_suffix('.key')
 
     # Figure out if we should respond at all.
     if os.getenv('REQUEST_METHOD', 'GET').upper() != 'POST':
@@ -100,12 +98,23 @@ def _redeploy(app_name, directory, script):
     except (KeyError, IndexError):
         raise InvalidHTTPInvocationError('Key not provided')
 
+    local_secret = get_local_secret(app)
+
+    if not secrets.compare_digest(local_secret, given_secret):
+        raise InvalidKeyError
+
+    # We can do it!
+    with cd(directory):
+        subprocess.run(script, shell=True, check=True)
+
+
+def get_local_secret(app: Path):
+    secret_key_file = app.with_suffix('.key')
     # Open the secret.
     try:
         local_secret = secret_key_file.read_text()
     except FileNotFoundError:
         raise InvalidKeyError("You forgot to generate a secret key.")
-
 
     # Figure out if we have the right permissions.
     # Note that the secret key file should ONLY be visible to this very
@@ -128,13 +137,7 @@ def _redeploy(app_name, directory, script):
             'chmod 600 <my-key-file>'
         )
 
-    if not secrets.compare_digest(local_secret, given_secret):
-        raise InvalidKeyError
-
-    # We can do it!
-    with cd(directory):
-        subprocess.run(script, shell=True, check=True)
-
+    return local_secret
 
 @contextmanager
 def cd(path):
