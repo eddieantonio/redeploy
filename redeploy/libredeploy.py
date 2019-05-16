@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
+"""
+A CGI script for redeploying applications.
+
+Usage:
+
+    from libredeploy import redeploy
+    redeploy(app_name=__file__,
+             directory='/path/to/the/app',
+             script='this is a shell script')
+"""
+
 import cgi
 import os
 import secrets
@@ -52,9 +63,6 @@ def _redeploy(app_name, directory, script):
     """
     How to use:
 
-    redeploy(app_name=__file__,
-             directory='/path/to/the/app',
-             script='this is a shell script')
 
     """
     app = Path(app_name)
