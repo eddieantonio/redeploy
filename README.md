@@ -116,6 +116,6 @@ sudo chown -R www-data:www-data /opt/flabbergaster
  ```yml
  after_success:
  - sudo apt-get -y install curl
- - curl -XPOST -dsecret=$(cat {app}.key) https://sapir.artrsn.ualberta.ca/redeploy/cree-dictionary
+ - curl -XPOST -dsecret=$(cat {app}.key) https://sapir.artrsn.ualberta.ca/redeploy/{app}
  ```
 
