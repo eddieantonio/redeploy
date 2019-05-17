@@ -46,18 +46,19 @@ Setting up a new application for deployment
 
 To enable a new application for redeployment:
 
- 1. Create a CGI script in `redeploy/{app}`
+ 1. Create a CGI script as `redeploy/redeploy/{app}`. The script is written in python3 but without a suffix. 
+ The easiest way is to `$ cp example {app}` with the `example` file in that directory and edit as needed.
  2. Create a secret key using `python3.6 ./redeploy/generate-secret.py {app}`
- 3. Ensure all of the permissions are correct!
+ 3. Ensure all of the permissions are correct! `example` script has status `www-data:www-data` with mode `a+x` (executable for all). The generated `secret.key` has status `www-data:www-data` with mode `400`. The permissions should work with default apache configurations.
  4. [Optional] Enable continuous deployment on Travis-CI.
 
 
 ### Creating a CGI script
 
-Use the following template to create a CGI script called `redeploy/{app}`:
+Under `redeploy/redeploy/` `$ cp example {app}` to create a template similar to the following:
 
 ```python
-#!/usr/bin/env python3
+#!/usr/bin/env python3.6
 # -*- coding: UTF-8 -*-
 
 from libredeploy import redeploy
@@ -75,29 +76,46 @@ your application somehow. The reloading command depends on the
 application and its configuration.
 
 For example, if my app is called `flabbergaster`, I'll save this as
-`redeploy/flabbergaster`.
+`redeploy/redeploy/flabbergaster`.
 
-Next is to make sure the server can execute this file. Set its
-permissions to allow for execution:
+The file should be already executable if you copy from `example` template. If not, make sure the server can execute 
+this file. Set its permissions to allow for execution:
 
-    chmod +x redeploy/flabbergaster
+    sudo chmod +x flabbergaster
+    
+
 
 ### Creating a secret key
 
-Use the `redeploy/generate-secret.py` script to generate a secret key.
+Use the `./generate-secret.py` script to generate a secret key.
 
-    redeploy/generate-secret.py redeploy/{app}
+    generate-secret.py {app}
 
 This will set permissions for the secret key as appropriate. Note: **only
 the owner of the file has read permissions!**
 
 ### Ensure all the permissions are correct
 
-TBD. :/
+The redeployment script is executed by apache as user `www-data`. To give apache permission to edit your project files. 
+Set the owner of your project files to `www-data`. For example:
+
+```bash
+sudo chown -R www-data:www-data /opt/flabbergaster
+```    
 
 
 ### Enable continuous deployment on Travis-CI
 
-TODO:
+ 1. `cd` into your project directory on sapir. For example `$ cd /opt/flabbergaster`
+ 2. Login on travis `$ travis login --org`
+ 3. Encrypt the key file of your application with `$ sudo travis encrypt-file /opt/redeploy/{app}.key --add` . 
+ This will generate a `{app}.key.enc` in your current directory. As well as add the necessary change in `.travis.yml` so
+ that before travis is testing your app, the `.key.enc` file is reversed to `.key` file.
+ 4. Add the following to `.travis.yml` to enable redeployment via http (change the `{app}` part to the name of your app); 
+ Update your changes with `git add {app}.key.enc .travis.yml` `git commit -m "redeployment key setup"` and `git push`:
+ ```yml
+ after_success:
+ - sudo apt-get -y install curl
+ - curl -XPOST -dsecret=$(cat {app}.key) https://sapir.artrsn.ualberta.ca/redeploy/cree-dictionary
+ ```
 
-    travis encrypt DEPLOY_KEY="this is the secret key" --add

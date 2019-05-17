@@ -77,13 +77,13 @@ def redeploy(*args, **kwargs):
 
         print("Status: 400 Bad Request")
         print("Could not redeploy:", type(err).__name__)
-        #print(err)
+        # print(err)
     except subprocess.CalledProcessError as err:
         print("Status: 500 Server Error")
         print("Content-Type: text/plain\r\n\r\n")
 
         print("Status: 500 Server Error")
-        #print(err)
+        # print(err)
     else:
         # All went okay :)
         print("Status: 200 OK")
@@ -106,7 +106,7 @@ def _redeploy(app_name, directory, script):
     # Secret verified! Run the redeploy script!
 
     with cd(directory):
-        with open(os.devnull, 'w') as fnull:
+        with open(os.devnull, "w") as fnull:
             subprocess.run(script, shell=True, check=True, stdout=fnull)
 
 
