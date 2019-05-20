@@ -109,13 +109,66 @@ sudo chown -R www-data:www-data /opt/flabbergaster
  1. `cd` into your project directory on sapir. For example `$ cd /opt/flabbergaster`
  2. Login on travis `$ travis login --org`
  3. Encrypt the key file of your application with `$ sudo travis encrypt-file /opt/redeploy/{app}.key --add` . 
- This will generate a `{app}.key.enc` in your current directory. As well as add the necessary change in `.travis.yml` so
- that before travis is testing your app, the `.key.enc` file is reversed to `.key` file.
- 4. Add the following to `.travis.yml` to enable redeployment via http (change the `{app}` part to the name of your app); 
- Update your changes with `git add {app}.key.enc .travis.yml` `git commit -m "redeployment key setup"` and `git push`:
+ This will generate a `{app}.key.enc` in your current directory, as well as add a `before install` key in `.travis.yml` so
+ that while travis is testing your app, the `.key.enc` file is reversed to `.key` file.
+ 4. Write the `.travis.yml` file in multiple staged fashion with an extra `deploy` stage. The following is a template 
+ which runs two parallel jobs in the test stage and runs deployment stage after that. Note that stages runs in order and
+ deployment stage won't execute if either one of the test jobs in the first stage fails. Also remove line `if: branch = master`
+ if you want branches other than master that pass tests to get deployed.
+ 
  ```yml
- after_success:
- - sudo apt-get -y install curl
- - curl -XPOST -dsecret=$(cat {app}.key) https://sapir.artrsn.ualberta.ca/redeploy/{app}
+stages:
+  - test
+  - name: deploy
+    if: branch = master # don't run deploy stage if branch is not master
+
+jobs:
+  include:
+  
+    # job No.1. Job defaults to test stage if not specified
+    - language: python
+      python:
+          - "3.7"
+      cache: pip
+
+      install:
+          - pip install -r requirements.txt
+
+      script:
+          - coverage run --source CreeDictionary/ CreeDictionary/manage.py test API
+          - coverage report -m
+
+    # job No.2 Job defaults to test stage if not specified
+    - language: node_js
+      node_js:
+          - "10"
+      cache:
+          npm: true
+          directories:
+          - ~/.cache
+      install:
+          - sudo apt-get -y install python3-pip python3-setuptools python-dev xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 apache2-dev
+          - sudo -H pip3 install -r requirements.txt
+          - npm ci
+      script:
+          - npm run build
+          - npm run django3:migrate
+          - npm run django3 & $(npm bin)/wait-on http-get://127.0.0.1:8000
+          - $(npm bin)/cypress run --project ./CreeDictionary/React/cypressTest
+
+ 
+    - stage: deploy
+    
+      # job No.3. Job belongs to deploy stage as specified
+      install: sudo apt-get -y install curl
+      script: curl -XPOST -dsecret=$(sudo cat cree-dictionary.key) sapir.artsrn.ualberta.ca/redeploy/cree-dictionary
+ 
+ 
+ # script automatically added by "travis encript-file". Move this to deploy stage above if you don't want 
+ other jobs to be affected.
+ 
+ before_install:
+- openssl aes-256-cbc -K $encrypted_49b37942e026_key -iv $encrypted_49b37942e026_iv
+  -in cree-dictionary.key.enc -out /opt/redeploy/cree-dictionary.key -d
  ```
 
