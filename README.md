@@ -165,7 +165,7 @@ jobs:
  
  
  # script automatically added by "travis encript-file". Move this to deploy stage above if you don't want 
- other jobs to be affected.
+ # other jobs to be affected.
  
  before_install:
 - openssl aes-256-cbc -K $encrypted_49b37942e026_key -iv $encrypted_49b37942e026_iv
