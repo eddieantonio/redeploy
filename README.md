@@ -115,6 +115,7 @@ sudo chown -R www-data:www-data /opt/flabbergaster
  which runs two parallel jobs in the test stage and runs deployment stage after that. Note that stages runs in order and
  deployment stage won't execute if either one of the test jobs in the first stage fails. Also remove line `if: branch = master`
  if you want branches other than master that pass tests to get deployed.
+ 5. Don't forget to `git push` after this.
  
  ```yml
 stages:
