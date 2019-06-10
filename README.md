@@ -67,6 +67,11 @@ redeploy(app_name=__file__,
          directory='/path/to/your/application',
          script='git pull && ./reload')
 ```
+For a Django project, an example like the following should work:
+```python
+script="git pull && python mysite/manage.py collectstatic --clear --no-input && touch mysite/mysite/wsgi.py"
+```
+where touching wsgi.py restarts the service
 
 
 Change `directory` to the directory in which your application resides.
