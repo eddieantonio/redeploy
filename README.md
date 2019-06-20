@@ -123,6 +123,9 @@ sudo chown -R www-data:www-data /opt/flabbergaster
  5. Don't forget to `git push` after this.
  
  ```yml
+ 
+dist: xenial
+ 
 stages:
   - test
   - name: deploy
