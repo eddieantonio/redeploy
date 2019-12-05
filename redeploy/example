@@ -19,4 +19,8 @@ redeploy(
     # Normally, this is a git pull, followed by someway to tell the
     # server to reload the app.
     script="false",
+    # This allows you to override environment variables, if necessary.
+    env={
+        "LANG": "en-CA.UTF-8"
+    }
 )
