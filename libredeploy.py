@@ -77,13 +77,11 @@ def redeploy(*args, **kwargs):
 
         print("Status: 400 Bad Request")
         print("Could not redeploy:", type(err).__name__)
-        # print(err)
     except subprocess.CalledProcessError as err:
         print("Status: 500 Server Error")
         print("Content-Type: text/plain\r\n\r\n")
 
         print("Status: 500 Server Error")
-        # print(err)
     else:
         # All went okay :)
         print("Status: 200 OK")
@@ -92,7 +90,9 @@ def redeploy(*args, **kwargs):
         print("Redeployment script run.")
 
 
-def _redeploy(app_name, directory, script):
+def _redeploy(app_name, directory, script, env=None):
+    if env is None:
+        env = {}
 
     # Read the secrets!
     given_secret = get_requested_secret()
@@ -105,9 +105,12 @@ def _redeploy(app_name, directory, script):
 
     # Secret verified! Run the redeploy script!
 
+    # Setup the environment
+    new_env = os.environ.copy()
+    new_env.update(env)
+
     with cd(directory):
-        with open(os.devnull, "w") as fnull:
-            subprocess.run(script, shell=True, check=True, stdout=fnull)
+        subprocess.run(script, shell=True, check=True, stdout=subprocess.DEVNULL)
 
 
 def get_local_secret(app_name: str):
