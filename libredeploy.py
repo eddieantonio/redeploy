@@ -110,7 +110,9 @@ def _redeploy(app_name, directory, script, env=None):
     new_env.update(env)
 
     with cd(directory):
-        subprocess.run(script, shell=True, check=True, stdout=subprocess.DEVNULL)
+        subprocess.run(
+            script, shell=True, check=True, stdout=subprocess.DEVNULL, env=new_env
+        )
 
 
 def get_local_secret(app_name: str):
