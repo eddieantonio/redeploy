@@ -10,17 +10,6 @@ PROJECT_ROOT = Path(__file__).parent.parent
 EXAMPLE_SECRET = "n23inimQh5ROuhRvZr2vchGOhfe_EcZQEZcOJplVP_w"
 
 
-# @pytest.fixture(autouse=True, scope="session")
-# def temp_noop_redeployment():
-#     """
-#     create a temporary redeployment file redeploy/noop that runs noop operation `$ true`
-#     associated secret key is also generated, if this test is run on Unix key will have current owner and group
-#     This fixture will be automatically used so that the noop redeployment file is available during the entire test session.
-#     """
-#     noop_file = (PROJECT_ROOT / "redeploy" / "example")
-#     key_file = PROJECT_ROOT / "noop.key"
-#     key_file.write_text(NOOP_SECRET)
-
 
 # apache gives cgi script env vars and data (in stdin)
 # a typical set of env vars cgi script receives, when there IS -dsecret=xxxxxxx:
