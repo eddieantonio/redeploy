@@ -14,14 +14,17 @@ Usage:
 
 import cgi
 import os
+import platform
 import secrets
 import subprocess
 import stat
 from contextlib import contextmanager
 from pathlib import Path
+import json
 
 ################################# Exceptions #################################
 from sys import stderr
+from typing import Dict, List
 
 
 class RedeployError(Exception):
@@ -89,21 +92,25 @@ def redeploy(*args, **kwargs):
 
         print("Redeployment script run.")
 
+def ip_is_whitelisted(app_name) -> bool:
+
+    whitelist: Dict[str, List[str]] = json.load(open(Path(__file__).parent / "redeploy" / "ip-whitelist.json"))
+    return os.getenv('REMOTE_ADDR') in whitelist[Path(app_name).stem]
 
 def _redeploy(app_name, directory, script, env=None):
     if env is None:
         env = {}
+    if not ip_is_whitelisted(app_name):
+        # Read the secrets!
+        given_secret = get_requested_secret()
+        # Only load our secret after we've verified we could get theirs.
+        local_secret = get_local_secret(app_name)
 
-    # Read the secrets!
-    given_secret = get_requested_secret()
-    # Only load our secret after we've verified we could get theirs.
-    local_secret = get_local_secret(app_name)
+        # Did the request provide the right secret?
+        if not secrets.compare_digest(local_secret, given_secret):
+            raise InvalidKeyError
 
-    # Did the request provide the right secret?
-    if not secrets.compare_digest(local_secret, given_secret):
-        raise InvalidKeyError
-
-    # Secret verified! Run the redeploy script!
+        # Secret verified! Run the redeploy script!
 
     # Setup the environment
     new_env = os.environ.copy()
@@ -131,6 +138,13 @@ def get_local_secret(app_name: str):
         local_secret = secret_key_file.read_text()
     except FileNotFoundError:
         raise InvalidKeyError("You forgot to generate a secret key.")
+
+    if platform.system() == "Windows":
+        # todo: maybe figure out how permission/ownership checking works on windows?
+        return local_secret
+
+    # os doesn't have .getuid() on Windows
+    # Check of UID and owner is meant to be performed on Unix system.
 
     # Figure out if we have the right permissions.
     # Note that the secret key file should ONLY be visible to this very
