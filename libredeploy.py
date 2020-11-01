@@ -92,10 +92,12 @@ def redeploy(*args, **kwargs):
 
         print("Redeployment script run.")
 
-def ip_is_whitelisted(app_name) -> bool:
 
-    whitelist: Dict[str, List[str]] = json.load(open(Path(__file__).parent / "redeploy" / "ip-whitelist.json"))
+def ip_is_whitelisted(app_name) -> bool:
+    with open(Path(__file__).parent / "redeploy" / "ip-whitelist.json") as f:
+        whitelist: Dict[str, List[str]] = json.load(f)
     return os.getenv('REMOTE_ADDR') in whitelist[Path(app_name).stem]
+
 
 def _redeploy(app_name, directory, script, env=None):
     if env is None:
