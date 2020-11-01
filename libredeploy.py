@@ -175,6 +175,7 @@ def get_requested_secret():
 
     # What is the secret?
     try:
+        # todo: print(cgi.parse(keep_blank_values=True)) should be used instead
         return cgi.parse()["secret"][0]
     except (KeyError, IndexError):
         raise InvalidHTTPInvocationError("Key not provided")

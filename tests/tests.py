@@ -30,3 +30,7 @@ def test_whitelisted_ip_with_key(capfd):
     mock_cgi_request("example", WHITELISTED_IP, secret=EXAMPLE_SECRET)
     # status 200
     assert "200" in capfd.readouterr()[0]
+
+# todo: finish the tests
+def test_v2_with_spec_file():
+    mock_cgi_request("example", EVIL_IP, secret=EXAMPLE_SECRET, v=1, file="123\n345-\t")
