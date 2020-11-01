@@ -80,8 +80,6 @@ def mock_cgi_request(app_name: str, ip: Union[IPv4Address, IPv6Address], secret:
 
 
     env = dict(os.environ)
-    # technically these should change if no secret data at all is given, e.g. when the ip is whitelisted,
-    # the developer won't bother give -dsecret=, but t
     env.update({"REQUEST_METHOD": method, "REMOTE_ADDR": str(ip)})
 
     data = ""
