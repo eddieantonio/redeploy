@@ -9,7 +9,6 @@ PROJECT_ROOT = Path(__file__).parent.parent
 
 EXAMPLE_SECRET = "n23inimQh5ROuhRvZr2vchGOhfe_EcZQEZcOJplVP_w"
 
-
 # @pytest.fixture(autouse=True, scope="session")
 # def temp_noop_redeployment():
 #     """
@@ -54,29 +53,36 @@ EXAMPLE_SECRET = "n23inimQh5ROuhRvZr2vchGOhfe_EcZQEZcOJplVP_w"
 "secret=xN3dM-YoFZmnF1TxDKUuENy-VAcMZTaflsPHypM-EP1"
 
 
-def mock_cgi_request(app_name: str, ip: Union[IPv4Address, IPv6Address], secret: Optional[str] = None, method="POST"):
+def mock_cgi_request(app_name: str, ip: Union[IPv4Address, IPv6Address], secret: Optional[str] = None, method="POST",
+                     v: Optional[int] = None, file: Optional[str] = None):
     """
+    :param v: If given, it corresponds to -dv= in curl
+    :param file: If given, it corresponds to --data-binary @file_path in curl
     :param app_name: name of the app under redeploy/
     :param ip: can be constructed like ipaddress.ip_address("127.0.0.1")
-    :param secret: secret data, to be compared against  <app>.key. Can be omitted when IP is whitelisted
+    :param secret: secret data, to be compared against  <app>.key. Can be omitted when IP is whitelisted. If given,
+        it correspondes to -dsecret= in curl
     :param method: "POST" | "GET" | etc.
     :raises CalledProcessError: if redeploy/<app> exits with non zero code
     """
 
-
-
     env = dict(os.environ)
-    # technically these should change if no secret data at all is given, e.g. when the ip is whitelisted,
-    # the developer won't bother give -dsecret=, but t
     env.update({"REQUEST_METHOD": method, "REMOTE_ADDR": str(ip)})
 
+
     data = ""
+
     if secret:
-        data = f"secret={secret}"
+        data += f"secret={secret}"
+    if v:
+        data += f"&v={v}"
+    if file:
+        data += f"&{file}"
+
+    if data:
         content_length = len(data)
         env.update({"CONTENT_LENGTH": str(content_length),
-                "CONTENT_TYPE": "application/x-www-form-urlencoded"})
-
+                        "CONTENT_TYPE": "application/x-www-form-urlencoded"})
 
     subprocess.run([sys.executable, str(PROJECT_ROOT / 'redeploy' / app_name)], input=data.encode('utf-8'), check=True,
                    env=env)
