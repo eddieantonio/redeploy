@@ -2,6 +2,8 @@
 # example.key is included for testing purpose
 !example.key
 
+/redeploy/ip-whitelist.json
+
 __pycache__
 redeploy/*!redeploy/example
 /venv

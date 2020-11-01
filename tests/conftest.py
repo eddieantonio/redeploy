@@ -1,14 +1,39 @@
+import json
 import os
 import subprocess
 import sys
 from ipaddress import IPv4Address, IPv6Address
+from json import JSONDecodeError
 from pathlib import Path
 from typing import Union, Optional
+
+import pytest
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
 EXAMPLE_SECRET = "n23inimQh5ROuhRvZr2vchGOhfe_EcZQEZcOJplVP_w"
 
+
+
+@pytest.fixture(scope="session", autouse=True)
+def ensure_test_whitelist_ip():
+    """
+    Create ip-whitelist.json if it doesn't exist.
+    Ensure test whitelist IP and test app {"example": ["111.11.111.111"]}  is in ip-whitelist.json
+    """
+    ip_whitelist_path = PROJECT_ROOT / 'redeploy' / 'ip-whitelist.json'
+
+    ip_whitelist = {"example": ["111.11.111.111"]}
+    if ip_whitelist_path.exists():
+        with open(ip_whitelist_path) as f:
+            try:
+                ip_whitelist = json.load(f)
+                ip_whitelist["example"] = ["111.11.111.111"]
+            except JSONDecodeError:
+                pass
+
+    with open(ip_whitelist_path, 'w') as f:
+        json.dump(ip_whitelist, f)
 
 
 # apache gives cgi script env vars and data (in stdin)
