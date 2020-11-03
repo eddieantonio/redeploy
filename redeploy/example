@@ -13,12 +13,12 @@ from libredeploy import redeploy
 
 redeploy(
     app_name=__file__,
-    # This is the directory where your app lives
-    directory="/opt",
+    # This is the directory where your app lives, for example /opt/my-app
+    directory="/",
     # This is the shell script of how to do the redeploy.
     # Normally, this is a git pull, followed by someway to tell the
     # server to reload the app.
-    script="false",
+    script="echo",
     # This allows you to override environment variables, if necessary.
     env={
         "LANG": "en-CA.UTF-8"

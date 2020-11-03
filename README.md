@@ -51,7 +51,11 @@ To enable a new application for redeployment:
  2. Create a secret key using `python3.6 ./redeploy/generate-secret.py {app}`
  3. Ensure all of the permissions are correct! `example` script has status `www-data:www-data` with mode `a+x` (executable for all). The generated `secret.key` has status `www-data:www-data` with mode `400`. The permissions should work with default Apache configurations.
  4. [Optional] Enable continuous deployment on Travis-CI.
-
+ 5. [Optional] Add ip in `redeploy/ip-whitelist.json` so that redeployment can be manually triggered from these
+ ip without a secret file. (In that case `curl -XPOST sapir.artsrn.ualberta.ca/redeploy/app-name` will be enough) 
+    ```json
+    {"app-name-1": ["209.85.231.104", "207.46.170.123"], "app-name-2": ["209.85.231.104", "207.46.170.123"]}
+    ```
 
 ### Creating a CGI script
 
